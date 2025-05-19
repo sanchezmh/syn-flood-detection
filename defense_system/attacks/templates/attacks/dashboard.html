@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" class="transition-colors duration-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SYN Flood Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+    }
+    .dark .glass {
+      background: rgba(31, 41, 55, 0.7);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
+
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 glass shadow-md p-6 hidden md:flex flex-col justify-between fixed h-full z-10">
+      <div>
+        <h1 class="text-2xl font-extrabold mb-8 flex items-center gap-2">
+          <i data-lucide="shield" class="w-5 h-5"></i>NetShield
+        </h1>
+        <nav class="space-y-4 text-sm">
+          <a href="#" class="flex items-center gap-3 text-indigo-600 font-semibold"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a>
+          <a href="#" class="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-500"><i data-lucide="file-text" class="w-5 h-5"></i>Logs</a>
+          <a href="#" class="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-500"><i data-lucide="alert-triangle" class="w-5 h-5"></i>Alerts</a>
+          <a href="#" class="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-500"><i data-lucide="settings" class="w-5 h-5"></i>Settings</a>
+        </nav>
+      </div>
+
+      <div class="mt-16 pt-6 border-t border-gray-200 dark:border-gray-700 text-sm space-y-4 flex flex-col items-center">
+        <button onclick="toggleDarkMode()" class="w-full py-2 px-4 rounded-full bg-gray-200 dark:bg-gray-700 hover:shadow-inner transition text-center">
+          Toggle Dark Mode
+        </button>
+        <a href="{% url 'logout' %}" class="w-full py-2 px-4 text-white bg-red-500 hover:bg-red-600 rounded-full text-center shadow">
+          Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 ml-0 md:ml-64 p-6 max-w-7xl mx-auto">
+      <!-- Header -->
+      <header class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold">SYN Flood Dashboard</h2>
+        <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Fetching data...</span>
+      </header>
+
+      <!-- KPI Cards -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="glass p-6 rounded-2xl shadow hover:shadow-lg hover:scale-[1.01] transition-transform duration-300" id="card-total">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Total Attacks</p>
+              <p class="text-3xl font-bold" id="kpi-total">0</p>
+            </div>
+            <i data-lucide="activity" class="w-6 h-6 text-indigo-500"></i>
+          </div>
+        </div>
+        <div class="glass p-6 rounded-2xl shadow hover:shadow-lg hover:scale-[1.01] transition-transform duration-300" id="card-malicious">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Malicious IPs</p>
+              <p class="text-3xl font-bold text-red-500" id="kpi-malicious">0</p>
+            </div>
+            <i data-lucide="flame" class="w-6 h-6 text-red-500"></i>
+          </div>
+        </div>
+        <div class="glass p-6 rounded-2xl shadow hover:shadow-lg hover:scale-[1.01] transition-transform duration-300" id="card-benign">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Benign Events</p>
+              <p class="text-3xl font-bold text-green-500" id="kpi-benign">0</p>
+            </div>
+            <i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i>
+          </div>
+        </div>
+        <div class="glass p-6 rounded-2xl shadow hover:shadow-lg hover:scale-[1.01] transition-transform duration-300" id="card-updated">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-gray-500 text-sm">Last Updated</p>
+              <p class="text-sm mt-1" id="kpi-updated">--</p>
+            </div>
+            <i data-lucide="clock" class="w-6 h-6 text-gray-500 dark:text-gray-300"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filter -->
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-semibold">Live Attacks</h3>
+        <select id="statusFilter" onchange="fetchAttacks()" class="text-sm rounded px-3 py-2 border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+          <option value="all">All</option>
+          <option value="benign">Benign</option>
+          <option value="malicious">Malicious</option>
+        </select>
+      </div>
+
+      <!-- Attack Table -->
+      <div class="glass rounded-xl shadow-md overflow-x-auto mb-10">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 uppercase text-xs font-semibold">
+            <tr>
+              <th class="py-4 px-6 text-left">Timestamp</th>
+              <th class="py-4 px-6 text-left">Source IP</th>
+              <th class="py-4 px-6 text-left">Status</th>
+            </tr>
+          </thead>
+          <tbody id="attack-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+            <!-- Injected rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Traffic Timeline Chart -->
+      <section class="mb-12">
+        <h3 class="text-xl font-semibold mb-4">📉 Traffic Timeline (Last 10 Minutes)</h3>
+        <div class="glass p-4 rounded-xl shadow-md">
+          <canvas id="trafficChart" height="120"></canvas>
+        </div>
+      </section>
+
+      <!-- Alerts -->
+      <section>
+        <h3 class="text-xl font-semibold mb-4">⚠️ Critical Alerts</h3>
+        <ul id="alert-list" class="space-y-3"></ul>
+      </section>
+
+      <!-- Footer -->
+      <footer class="text-sm text-center text-gray-400 mt-12">
+        &copy; 2025 NetShield v1.0 — Built for real-time network defense.
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    let trafficChart;
+    const trafficData = {
+      labels: [],
+      datasets: [
+        {
+          label: "Malicious",
+          data: [],
+          borderColor: "rgb(239, 68, 68)",
+          backgroundColor: "rgba(239, 68, 68, 0.2)",
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: "Benign",
+          data: [],
+          borderColor: "rgb(34, 197, 94)",
+          backgroundColor: "rgba(34, 197, 94, 0.2)",
+          tension: 0.3,
+          fill: true
+        }
+      ]
+    };
+
+    function updateTrafficChart(label, malicious, benign) {
+      const maxPoints = 10;
+      trafficData.labels.push(label);
+      trafficData.datasets[0].data.push(malicious);
+      trafficData.datasets[1].data.push(benign);
+
+      if (trafficData.labels.length > maxPoints) {
+        trafficData.labels.shift();
+        trafficData.datasets[0].data.shift();
+        trafficData.datasets[1].data.shift();
+      }
+
+      if (!trafficChart) {
+        const ctx = document.getElementById("trafficChart").getContext("2d");
+        trafficChart = new Chart(ctx, {
+          type: "line",
+          data: trafficData,
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+              }
+            }
+          }
+        });
+      } else {
+        trafficChart.update();
+      }
+    }
+
+    async function fetchAttacks() {
+      const filter = document.getElementById('statusFilter').value;
+      const statusEl = document.getElementById('refreshStatus');
+      const now = new Date();
+
+      statusEl.textContent = 'Loading...';
+      try {
+        const res = await fetch('/api/attacks/');
+        const { attacks } = await res.json();
+
+        const filtered = attacks.filter(a => filter === 'all' ? true : a.status.toLowerCase() === filter);
+        const tbody = document.getElementById('attack-table-body');
+        tbody.innerHTML = '';
+
+        let malicious = 0, benign = 0;
+
+        filtered.forEach(attack => {
+          const status = attack.status.toLowerCase();
+          const badge = status === 'malicious' ? 'bg-red-500' : 'bg-green-500';
+          if (status === 'malicious') malicious++;
+          else benign++;
+
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-gray-50 dark:hover:bg-gray-800 transition';
+          row.innerHTML = `
+            <td class="py-4 px-6">${attack.timestamp}
+</td>
+            <td class="py-4 px-6">${attack.source_ip}</td>
+            <td class="py-4 px-6"><span class="${badge} text-white px-3 py-1 rounded-full text-xs font-medium">${attack.status}</span></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        document.getElementById('kpi-total').textContent = attacks.length;
+        document.getElementById('kpi-malicious').textContent = malicious;
+        document.getElementById('kpi-benign').textContent = benign;
+        document.getElementById('kpi-updated').textContent = now.toLocaleTimeString();
+        statusEl.textContent = `Updated at ${now.toLocaleTimeString()}`;
+
+        updateAlerts(filtered.slice(0, 3));
+        updateTrafficChart(now.toLocaleTimeString(), malicious, benign);
+      } catch (err) {
+        statusEl.textContent = 'Error fetching data';
+        console.error(err);
+      }
+    }
+
+    function updateAlerts(alerts) {
+      const container = document.getElementById('alert-list');
+      container.innerHTML = '';
+      alerts.forEach(alert => {
+        const li = document.createElement('li');
+        li.className = 'p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow';
+        li.innerHTML = `<strong>${alert.source_ip}</strong> flagged as <span class="text-red-700 font-semibold">${alert.status}</span> at ${alert.timestamp}`;
+        container.appendChild(li);
+      });
+    }
+
+    function startSyncedUpdates() {
+      const drift = 10000 - (Date.now() % 10000);
+      setTimeout(() => {
+        fetchAttacks();
+        startSyncedUpdates();
+      }, drift);
+    }
+
+    fetchAttacks();
+    startSyncedUpdates();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
