@@ -6,7 +6,7 @@ import signal
 from scapy.all import IP, TCP, send
 
 # Configuration
-target_ip = "10.8.0.26"  # <-- CHANGE to your actual host/router IP
+target_ip = "10.8.0.26"  # my wsl ip address
 target_port = 80
 syn_duration = 800
 pcap_dir = "dummy/pcaps"
@@ -36,7 +36,7 @@ def parse_conn_log(path):
     return df
 
 # SYN Flood capture
-print("🔴 Capturing SYN flood traffic for 30 seconds...")
+print("Capturing SYN flood traffic for 30 seconds...")
 syn_pcap = os.path.join(pcap_dir, f"syn_only_{int(time.time())}.pcap")
 tcpdump_proc = subprocess.Popen(["sudo", "tcpdump", "-i", "any", "-w", syn_pcap])
 start = time.time()
@@ -45,10 +45,10 @@ while time.time() - start < syn_duration:
     send(pkt, verbose=0, inter=0.0005)
 tcpdump_proc.send_signal(signal.SIGINT)
 tcpdump_proc.wait()
-print("✅ SYN capture complete.")
+print("SYN capture complete.")
 
 # Zeek processing
-print("📦 Running Zeek on SYN pcap...")
+print("Running Zeek on SYN pcap...")
 syn_log = run_zeek(syn_pcap, f"syn_only_{int(time.time())}")
 df_syn = parse_conn_log(syn_log)
 df_syn["Label"] = 1
@@ -61,4 +61,4 @@ else:
     df_final = df_syn
 
 df_final.to_csv(output_file, index=False)
-print(f"✅ Appended SYN data to: {output_file} (total rows: {len(df_final)})")
+print(f"Appended SYN data to: {output_file} (total rows: {len(df_final)})")

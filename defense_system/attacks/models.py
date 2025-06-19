@@ -16,4 +16,5 @@ class AttackLog(models.Model):
 class AttackCounter(models.Model):
     id = models.SmallAutoField(primary_key=True)
     count = models.IntegerField(default=0)
+    last_emailed = models.IntegerField(default=0) 
 

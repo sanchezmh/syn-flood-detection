@@ -8,7 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report, confusion_matrix
 
 # === Load & clean ===
-df_raw = pd.read_csv('dummy/Syn.csv', low_memory=False)
+df_raw = pd.read_csv('../datasets_and_models/Syn.csv', low_memory=False)
 df_raw.columns = df_raw.columns.str.strip()
 
 # === Label to binary (1 = SYN, 0 = BENIGN) ===
@@ -56,10 +56,10 @@ results_df['RF_prediction'] = rf_preds
 results_df['RF_probability'] = rf_probs
 results_df['True_Label'] = y.values
 
-results_df.to_csv('dummy/RF_results.csv', index=False)
-print("\n✅ RF results saved to dummy/RF_results.csv")
+results_df.to_csv('../dumma/RF_results.csv', index=False)
+print("\n RF results saved to datasets_and_models/RF_results.csv")
 
 # === Save the trained Random Forest model ===
 import joblib
-joblib.dump(rf, 'dummy/rf_model.pkl')
-print("✅ RF model saved to dummy/rf_model.pkl")
+joblib.dump(rf, '../dumma/rf_model.pkl')
+print(" RF model saved to dummy/rf_model.pkl")

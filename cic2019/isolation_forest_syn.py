@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report, confusion_matrix
 
 # === Load Dataset ===
-df_raw = pd.read_csv('dummy/Syn.csv', low_memory=False)
+df_raw = pd.read_csv('../datasets_and_models/Syn.csv', low_memory=False)
 df_raw.columns = df_raw.columns.str.strip()
 print("Initial shape:", df_raw.shape)
 
@@ -69,10 +69,10 @@ results_df['IF_score'] = scores
 results_df['IF_prediction'] = preds
 results_df['True_Label'] = y_true.values
 
-results_df.to_csv('dummy/IF_benign_only_results.csv', index=False)
-print("\n✅ Results saved to dummy/IF_benign_only_results.csv")
+results_df.to_csv('../dumma/IFF_benign_only_results.csv', index=False)
+print("\n✅ dumma/IF_benign_only_results.csv")
 
 # === Save the trained Isolation Forest model ===
 import joblib
-joblib.dump(iso, 'dummy/if_model.pkl')
-print("✅ IF model saved to dummy/if_model.pkl")
+joblib.dump(iso, '../dumma/if_model.pkl')
+print("✅ IF model saved to dumma/if_model.pkl")
