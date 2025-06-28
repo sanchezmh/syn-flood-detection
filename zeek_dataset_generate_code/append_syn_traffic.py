@@ -9,9 +9,9 @@ from scapy.all import IP, TCP, send
 target_ip = "10.8.0.26"  # my wsl ip address
 target_port = 80
 syn_duration = 800
-pcap_dir = "dummy/pcaps"
-zeek_out_dir = "dummy/zeek_out"
-data_dir = "dummy"
+pcap_dir = "datasets_and_models/pcaps"
+zeek_out_dir = "datasets_and_models/zeek_out"
+data_dir = "datasets_and_models"
 output_file = os.path.join(data_dir, "zeek_combined_training.csv")
 
 os.makedirs(pcap_dir, exist_ok=True)

@@ -4,15 +4,7 @@
 {% block content %}
 <header class="flex justify-between items-center mb-8">
   <h2 class="text-3xl font-bold">SYN Flood Dashboard</h2>
-  <div class="flex items-center gap-4">
-    <button onclick="announceStatus()" class="text-sm px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-      🔊 Speak Now
-    </button>
-    <button onclick="startVoiceQuery()" class="text-sm px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-      🎙️ Ask Assistant
-    </button>
-    <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Fetching data...</span>
-  </div>
+  <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Fetching data...</span>
 </header>
 
 <!-- KPI Cards -->
@@ -73,6 +65,7 @@
         <th class="py-4 px-6 text-left">Timestamp</th>
         <th class="py-4 px-6 text-left">Source IP</th>
         <th class="py-4 px-6 text-left">Status</th>
+        <th class="py-4 px-6 text-left">Risk</th>
       </tr>
     </thead>
     <tbody id="attack-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -100,70 +93,6 @@
 <script>
 let trafficChart;
 let previousMaliciousCount = 0;
-
-function announce(message) {
-  if ('speechSynthesis' in window) {
-    const synth = window.speechSynthesis;
-    const utter = new SpeechSynthesisUtterance(message);
-    utter.lang = 'en-US';
-    utter.pitch = 1;
-    utter.rate = 1;
-    synth.speak(utter);
-  }
-}
-
-function announceStatus() {
-  const mal = parseInt(document.getElementById('kpi-malicious').textContent);
-  const ben = parseInt(document.getElementById('kpi-benign').textContent);
-  announce(`Current stats: ${mal} malicious, ${ben} benign.`);
-}
-
-function startVoiceQuery() {
-  if (!('webkitSpeechRecognition' in window)) {
-    announce("Sorry, your browser does not support voice input.");
-    return;
-  }
-
-  const recognition = new webkitSpeechRecognition();
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-  recognition.continuous = true;
-
-  announce("I'm listening...");
-
-  recognition.onresult = function(event) {
-    recognition.stop();  // important!
-    const transcript = event.results[0][0].transcript.toLowerCase();
-    console.log("Heard:", transcript);
-    handleVoiceCommand(transcript);
-  };
-
-  recognition.onerror = function(event) {
-    console.error("Speech recognition error:", event.error);
-    announce("Sorry, I didn’t catch that.");
-  };
-
-  recognition.start();
-}
-
-function handleVoiceCommand(command) {
-  const mal = parseInt(document.getElementById('kpi-malicious').textContent);
-  const ben = parseInt(document.getElementById('kpi-benign').textContent);
-  const total = parseInt(document.getElementById('kpi-total').textContent);
-
-  if (command.includes("how many") && command.includes("syn")) {
-    announce(`There are ${total} SYN flood attacks.`);
-  } else if (command.includes("malicious")) {
-    announce(`There are ${mal} malicious events.`);
-  } else if (command.includes("benign")) {
-    announce(`There are ${ben} benign events.`);
-  } else if (command.includes("status")) {
-    announce(`Malicious: ${mal}. Benign: ${ben}. Total: ${total}.`);
-  } else {
-    announce("I’m sorry, I didn't understand that.");
-  }
-}
 
 const trafficData = {
   labels: [],
@@ -243,24 +172,40 @@ async function fetchAttacks() {
     filtered.forEach(attack => {
       const status = attack.status.toLowerCase();
       const badge = status === 'malicious' ? 'bg-red-500' : 'bg-green-500';
+      
+      const localTime = new Date(attack.timestamp).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+
+      let riskLabel = 'Low';
+      let riskColor = 'bg-green-500';
+      if (attack.score > 0.5) {
+        riskLabel = 'High';
+        riskColor = 'bg-green-500';
+      } else if (attack.score === 0.5) {
+        riskLabel = 'Medium';
+        riskColor = 'bg-yellow-500';
+      }
 
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 dark:hover:bg-gray-800 transition';
       row.innerHTML = `
-        <td class="py-4 px-6">${attack.timestamp}</td>
+        <td class="py-4 px-6">${localTime}</td>
         <td class="py-4 px-6">${attack.source_ip}</td>
         <td class="py-4 px-6"><span class="${badge} text-white px-3 py-1 rounded-full text-xs font-medium">${attack.status}</span></td>
+        <td class="py-4 px-6"><span class="${riskColor} text-white px-3 py-1 rounded-full text-xs font-medium">${riskLabel}</span></td>
       `;
       tbody.appendChild(row);
     });
 
     const diff = malicious - previousMaliciousCount;
     if (Math.abs(diff) >= 5) {
-      if (diff > 0) {
-        announce(`${diff} new SYN flood attacks detected.`);
-      } else {
-        announce(`Malicious attacks dropped by ${Math.abs(diff)}. Count is now ${malicious}.`);
-      }
+      announce(`${diff > 0 ? diff + ' new' : 'Drop of ' + Math.abs(diff)} SYN flood attacks detected.`);
     }
     previousMaliciousCount = malicious;
 
@@ -284,7 +229,7 @@ function updateAlerts(alerts) {
   alerts.forEach(alert => {
     const li = document.createElement('li');
     li.className = 'p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow';
-    li.innerHTML = `<strong>${alert.source_ip}</strong> flagged as <span class="text-red-700 font-semibold">${alert.status}</span> at ${alert.timestamp}`;
+    li.innerHTML = `<strong>${alert.source_ip}</strong> flagged as <span class="text-red-700 font-semibold">${alert.status}</span> at ${new Date(alert.timestamp).toLocaleString()}`;
     container.appendChild(li);
   });
 }

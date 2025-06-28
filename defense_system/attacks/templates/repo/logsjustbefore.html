@@ -1,0 +1,54 @@
+{% extends 'attacks/base.html' %}
+{% block title %}Logs{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6">📜 All Attack Logs</h2>
+
+<div class="glass rounded-xl overflow-x-auto shadow p-4">
+  <table class="min-w-full text-sm text-left">
+    <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase text-xs font-semibold">
+      <tr>
+        <th class="py-3 px-4">Timestamp</th>
+        <th class="py-3 px-4">Source IP</th>
+        <th class="py-3 px-4">Status</th>
+        <th class="py-3 px-4">Score</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+      {% for log in logs.object_list %}
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+        <td class="py-3 px-4">{{ log.timestamp }}</td>
+        <td class="py-3 px-4">{{ log.source_ip }}</td>
+        <td class="py-3 px-4">
+          <span class="{% if log.status == 'malicious' %}text-red-500{% else %}text-green-500{% endif %} font-semibold">
+            {{ log.status }}
+          </span>
+        </td>
+        <td class="py-3 px-4">{{ log.score }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="py-4 px-4 text-center text-gray-500">No logs found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination Controls -->
+<div class="mt-6 flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
+  {% if logs.has_previous %}
+    <a href="?page={{ logs.previous_page_number }}" class="hover:underline">← Previous</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+
+  <span>Page {{ logs.number }} of {{ logs.paginator.num_pages }}</span>
+
+  {% if logs.has_next %}
+    <a href="?page={{ logs.next_page_number }}" class="hover:underline">Next →</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+</div>
+{% endblock %}

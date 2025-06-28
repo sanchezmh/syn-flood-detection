@@ -1,4 +1,3 @@
-
 import os
 import pandas as pd
 import numpy as np
@@ -8,13 +7,15 @@ import torch.nn as nn
 from sklearn.ensemble import RandomForestClassifier, IsolationForest
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, roc_auc_score
 import matplotlib.pyplot as plt
 
 # === CONFIG ===
 DATA_PATH = "../datasets_and_models/Cleaned_and_Processed_Dataset.csv"
 MODEL_DIR = "../datasets_and_models/trainer"
+RESULTS_DIR = "../Results"
 os.makedirs(MODEL_DIR, exist_ok=True)
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
 # === Load Cleaned and Encoded Data ===
 df = pd.read_csv(DATA_PATH)
@@ -51,7 +52,27 @@ scaler = MinMaxScaler()
 anfis_input_scaled_all = scaler.fit_transform(anfis_input_all)
 joblib.dump(scaler, os.path.join(MODEL_DIR, "anfis_input_scaler.joblib"))
 
-# === Convert to PyTorch Tensors ===
+# === Evaluate Isolation Forest (unsupervised) ===
+threshold = np.percentile(iso_scores_all, 90)  # Adjustable threshold
+iso_preds = (iso_scores_all > threshold).astype(int)
+
+print("\n=== Isolation Forest Evaluation ===")
+print(f"Threshold (90th percentile): {threshold:.4f}")
+print(classification_report(y, iso_preds, target_names=["Benign (0)", "Attack (1)"]))
+
+# Confusion Matrix
+cm_if = confusion_matrix(y, iso_preds)
+disp_if = ConfusionMatrixDisplay(confusion_matrix=cm_if, display_labels=["Benign (0)", "Attack (1)"])
+disp_if.plot(cmap=plt.cm.Oranges)
+plt.title("Isolation Forest Confusion Matrix")
+plt.savefig(os.path.join(RESULTS_DIR, "if_confusion_matrix.png"), dpi=300, bbox_inches='tight')
+print("Isolation Forest confusion matrix saved as 'if_confusion_matrix.png'")
+
+# ROC AUC
+roc_auc = roc_auc_score(y, iso_scores_all)
+print(f"Isolation Forest ROC AUC Score: {roc_auc:.4f}")
+
+# === Convert to PyTorch Tensors for ANFIS ===
 X_tensor = torch.tensor(anfis_input_scaled_all, dtype=torch.float32)
 y_tensor = torch.tensor(y.values.reshape(-1, 1), dtype=torch.float32)
 
@@ -63,7 +84,7 @@ class GaussianMF(nn.Module):
         self.sigmas = nn.Parameter(torch.rand(num_inputs, num_mfs))
 
     def forward(self, x):
-        x = x.unsqueeze(2)  # (batch_size, num_inputs, 1)
+        x = x.unsqueeze(2)
         return torch.exp(-0.5 * ((x - self.centers) / self.sigmas) ** 2)
 
 class ANFIS(nn.Module):
@@ -73,20 +94,16 @@ class ANFIS(nn.Module):
         self.num_mfs = num_mfs
         self.num_rules = num_mfs ** num_inputs
         self.mf_layer = GaussianMF(num_inputs, num_mfs)
-        self.rule_weights = nn.Parameter(torch.rand(self.num_rules, num_inputs + 1))  # +1 for bias
+        self.rule_weights = nn.Parameter(torch.rand(self.num_rules, num_inputs + 1))
 
     def forward(self, x):
         batch_size = x.size(0)
-        mf_out = self.mf_layer(x)  # (batch_size, num_inputs, num_mfs)
-        mf_out = mf_out.permute(0, 2, 1)  # (batch_size, num_mfs, num_inputs)
-
-        # Generate fuzzy rule combinations
+        mf_out = self.mf_layer(x)
+        mf_out = mf_out.permute(0, 2, 1)
         rules = torch.cartesian_prod(*[torch.arange(self.num_mfs) for _ in range(self.num_inputs)])
         rule_strengths = torch.ones((batch_size, self.num_rules), device=x.device)
-
         for i in range(self.num_inputs):
             rule_strengths *= mf_out[:, rules[:, i], i]
-
         norm_strengths = rule_strengths / rule_strengths.sum(dim=1, keepdim=True)
         x_with_bias = torch.cat([x, torch.ones(batch_size, 1)], dim=1)
         rule_outputs = torch.matmul(x_with_bias, self.rule_weights.t())
@@ -117,12 +134,9 @@ with torch.no_grad():
     print("\n=== ANFIS Classification Report ===")
     print(classification_report(y.values, preds))
 
-    # === Confusion Matrix ===
     cm = confusion_matrix(y.values, preds)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Benign (0)", "Attack (1)"])
     disp.plot(cmap=plt.cm.Blues)
     plt.title("ANFIS Confusion Matrix")
-
-    # Save to file
-    plt.savefig("../Results/anfis_confusion_matrix2.png", dpi=300, bbox_inches='tight')
-    print("Confusion matrix saved as 'anfis_confusion_matrix1.png'")
+    plt.savefig(os.path.join(RESULTS_DIR, "anfis_confusion_matrix4.png"), dpi=300, bbox_inches='tight')
+    print("Confusion matrix saved as 'anfis_confusion_matrix.png4'")

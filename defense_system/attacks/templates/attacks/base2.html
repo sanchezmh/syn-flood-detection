@@ -15,89 +15,57 @@
     body { font-family: 'Inter', sans-serif; }
     .glass {
       background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(12px);
-      border-right: 1px solid rgba(0,0,0,0.05);
+      backdrop-filter: blur(10px);
     }
     .dark .glass {
       background: rgba(31, 41, 55, 0.7);
-      border-right: 1px solid rgba(255,255,255,0.1);
     }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.05); opacity: 0.8; }
-    }
-    .animate-pulse { animation: pulse 1.5s infinite; }
   </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen">
 
-  <!-- Sidebar -->
-  <aside class="w-64 glass shadow-lg p-6 hidden md:flex flex-col justify-between fixed h-full z-20">
-    <div>
-      <h1 class="text-2xl font-extrabold mb-10 flex items-center gap-3 text-indigo-600 dark:text-indigo-400">
-        <i data-lucide="shield" class="w-6 h-6"></i> SYN Flood Detection
-      </h1>
-      <nav class="space-y-4 text-[15px] font-medium">
-        <a href="{% url 'dashboard' %}" class="flex items-center gap-3 text-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-300 transition">
-          <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
-        </a>
-        <a href="{% url 'logs' %}" class="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-indigo-500 transition">
-          <i data-lucide="file-text" class="w-5 h-5"></i> Logs
-        </a>
-        <a href="{% url 'alerts' %}" class="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-indigo-500 transition">
-          <i data-lucide="alert-triangle" class="w-5 h-5"></i> Alerts
-        </a>
-        <a href="{% url 'analytics' %}" class="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-indigo-500 transition">
-          <i data-lucide="pie-chart" class="w-5 h-5"></i> Analytics
-        </a>
-        <a href="{% url 'settings' %}" class="flex items-center gap-3 text-gray-600 dark:text-gray-300 hover:text-indigo-500 transition">
-          <i data-lucide="settings" class="w-5 h-5"></i> Settings
-        </a>
-      </nav>
-    </div>
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 glass shadow-md p-6 hidden md:flex flex-col justify-between fixed h-full z-10">
+      <div>
+        <h1 class="text-2xl font-extrabold mb-8 flex items-center gap-2">
+          <i data-lucide="shield" class="w-5 h-5"></i>SYN Flood Detection
+        </h1>
+        <nav class="space-y-4 text-sm">
+          <a href="{% url 'dashboard' %}" class="flex items-center gap-3 text-indigo-600 font-semibold"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a>
+          <a href="{% url 'logs' %}" class="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-500"><i data-lucide="file-text" class="w-5 h-5"></i>Logs</a>
+          <a href="{% url 'alerts' %}" class="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-500"><i data-lucide="alert-triangle" class="w-5 h-5"></i>Alerts</a>
+          <a href="{% url 'analytics' %}" class="flex items-center gap-3 hover:text-indigo-500"><i data-lucide="pie-chart" class="w-5 h-5"></i>Analytics</a>
+          <a href="{% url 'settings' %}" class="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-500"><i data-lucide="settings" class="w-5 h-5"></i>Settings</a>
+        </nav>
+      </div>
 
-    <!-- Alive Assistant Button -->
-    <div class="mt-10 space-y-5 text-center">
-      <button onclick="startVoiceQuery()" 
-        class="w-full py-2 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-lg hover:scale-105 hover:from-green-600 hover:to-green-700 transition transform duration-300 animate-pulse">
-         Ask Assistant
-      </button>
-    </div>
+      <div class="mt-8 space-y-4 text-center">
+        <!-- Voice Assistant Buttons -->
+      
+        <button onclick="startVoiceQuery()" class="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700">
+          🎙️ Ask Assistant
+        </button>
+      </div>
 
-    <div class="mt-16 pt-6 border-t border-gray-200 dark:border-gray-700 text-sm space-y-4 flex flex-col items-center">
-      <button onclick="toggleDarkMode()" class="w-full py-2 px-4 rounded-full bg-gray-200 dark:bg-gray-700 hover:shadow-inner transition text-center">
-        Toggle Dark Mode
-      </button>
-      <a href="{% url 'logout' %}" class="w-full py-2 px-4 text-white bg-red-500 hover:bg-red-600 rounded-full text-center shadow-md">
-        Logout
-      </a>
-    </div>
-  </aside>
+      <div class="mt-16 pt-6 border-t border-gray-200 dark:border-gray-700 text-sm space-y-4 flex flex-col items-center">
+        <button onclick="toggleDarkMode()" class="w-full py-2 px-4 rounded-full bg-gray-200 dark:bg-gray-700 hover:shadow-inner transition text-center">
+          Toggle Dark Mode
+        </button>
+        <a href="{% url 'logout' %}" class="w-full py-2 px-4 text-white bg-red-500 hover:bg-red-600 rounded-full text-center shadow">
+          Logout
+        </a>
+      </div>
+    </aside>
 
-  <!-- Main Content -->
-  <div class="flex-1 ml-0 md:ml-64 p-8 max-w-7xl mx-auto transition-all duration-300 ease-in-out flex flex-col min-h-screen">
-    
-    <!-- Page Header -->
-    <header class="mb-8">
-      <h2 class="text-3xl font-bold tracking-tight">Detection</h2>
-    </header>
-
-    <!-- Page Content -->
-    <main class="flex-1">
+    <!-- Main Content -->
+    <main class="flex-1 ml-0 md:ml-64 p-6 max-w-7xl mx-auto">
       {% block content %}{% endblock %}
+      <footer class="text-sm text-center text-gray-400 mt-12">
+        &copy; 2025 Syn Flood Detection — Built for real-time network defense.
+      </footer>
     </main>
-
-    <!-- Footer -->
-    <footer class="text-sm text-center text-gray-400 mt-16 mb-6">
-      &copy; 2025 SYN Flood Detection &mdash; Built for real-time network defense.
-    </footer>
   </div>
-
-  <!-- Sticky Ask Assistant on mobile -->
-  <button onclick="startVoiceQuery()" 
-    class="fixed bottom-6 right-6 z-50 bg-green-600 text-white px-5 py-4 rounded-full shadow-xl hover:bg-green-700 transition md:hidden animate-pulse">
-    
-  </button>
 
   <script>
     function toggleDarkMode() {
@@ -105,7 +73,7 @@
     }
     lucide.createIcons();
 
-    // Voice Assistant Logic
+    // ✅ Voice Assistant Logic (no Ollama!)
     function announce(message) {
       if ('speechSynthesis' in window) {
         const synth = window.speechSynthesis;
@@ -118,6 +86,7 @@
     }
 
     function announceStatus() {
+      // Optional: customize your own message here!
       announce("Syn Flood Detection system is online.");
     }
 
@@ -136,11 +105,12 @@
       announce("I'm listening...");
 
       recognition.onresult = function(event) {
+        
         const transcript = event.results[0][0].transcript.toLowerCase();
         handleVoiceCommand(transcript);
       };
 
-      recognition.onerror = function() {
+      recognition.onerror = function(event) {
         announce("Sorry, I didn’t catch that.");
       };
 
@@ -152,6 +122,7 @@
 
       const lowerCommand = command.toLowerCase();
 
+      // Navigation commands
       if (lowerCommand.includes("settings")) {
         announce("Navigating to settings.");
         setTimeout(() => { window.location.href = "/settings/"; }, 2000);
@@ -164,7 +135,7 @@
       }
       if (lowerCommand.includes("dashboard")) {
         announce("Navigating to dashboard.");
-        setTimeout(() => { window.location.href = "/dashboard/"; }, 2000);
+        setTimeout(() => { window.location.href = "/"; }, 2000);
         return;
       }
       if (lowerCommand.includes("analytics")) {
@@ -178,6 +149,7 @@
         return;
       }
 
+      // 🔸 Stats command (calls API)
       fetch('/api/attacks/')
         .then(response => response.json())
         .then(data => {

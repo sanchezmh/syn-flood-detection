@@ -3,8 +3,8 @@
 import pandas as pd
 
 # === Load RF and IF output files ===
-df_rf = pd.read_csv('dummy/RF_results.csv')
-df_if = pd.read_csv('dummy/IF_benign_only_results.csv')
+df_rf = pd.read_csv('datasets_and_models/RF_results.csv')
+df_if = pd.read_csv('datasets_and_models/IF_benign_only_results.csv')
 
 # === Ensure aligned indices ===
 df_rf = df_rf.reset_index(drop=True)
@@ -24,5 +24,5 @@ anfis_input = pd.DataFrame({
 })
 
 # === Save to file ===
-anfis_input.to_csv('dummy/anfis_input.csv', index=False)
-print("✅ ANFIS input saved to dummy/anfis_input.csv")
+anfis_input.to_csv('datasets_and_models/anfis_input.csv', index=False)
+print("✅ ANFIS input saved to datasets_and_models/anfis_input.csv")

@@ -1,0 +1,20 @@
+{% extends 'attacks/base.html' %}
+{% block title %}Alerts{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6">⚠️ Critical Alerts</h2>
+
+{% if alerts %}
+<ul class="space-y-4">
+  {% for alert in alerts %}
+  <li class="p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow">
+    <strong>{{ alert.source_ip }}</strong> flagged as 
+    <span class="text-red-700 dark:text-red-300 font-semibold">{{ alert.status }}</span>
+    at <em>{{ alert.timestamp }}</em>.
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="text-gray-500">No alerts to display.</p>
+{% endif %}
+{% endblock %}

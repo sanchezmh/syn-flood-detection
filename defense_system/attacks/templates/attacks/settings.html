@@ -2,21 +2,56 @@
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-<h2 class="text-2xl font-bold mb-6">⚙️ Settings</h2>
+<header class="flex justify-between items-center mb-6">
+  <h2 class="text-2xl font-bold">⚙️ Settings & System Overview</h2>
+  <span class="text-sm text-gray-500 dark:text-gray-300">Last updated: {{ last_update }}</span>
+</header>
 
-<div class="glass p-6 rounded-xl shadow space-y-6 max-w-xl">
-  <p class="text-gray-600 dark:text-gray-300">
-    This is a placeholder settings page. You can expand it with real options later.
-  </p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- System Overview -->
+  <section class="glass p-6 rounded-xl shadow space-y-2">
+    <h3 class="text-lg font-semibold mb-2">🧠 System Overview</h3>
+    <ul class="text-sm space-y-1">
+      <li>🔍 Detection Stack: Random Forest → Isolation Forest → ANFIS</li>
+      <li>📈 Threshold: {{ threshold }}</li>
+      <li>📧 Email Alerts: {{ email_status }}</li>
+      <li>🛡️ Auto-block: {{ autoblock_status }}</li>
+      <li>📌 Total Attacks: {{ total_attacks }}</li>
+    </ul>
+  </section>
 
-  <div>
-    <label class="block mb-2 font-medium">Email Notification Threshold</label>
-    <input type="number" class="w-48 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white" value="50" disabled>
-  </div>
+  <!-- Email Options -->
+  <section class="glass p-6 rounded-xl shadow space-y-3">
+    <h3 class="text-lg font-semibold">📨 Email Tools</h3>
+    <form method="POST" action="{% url 'send_summary_email' %}">
+      {% csrf_token %}
+      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">📬 Email Me Attack Summary</button>
+    </form>
 
-  <div>
-    <label class="block mb-2 font-medium">Auto Block Malicious IPs</label>
-    <input type="checkbox" checked disabled class="accent-red-500 w-5 h-5">
-  </div>
+    <form method="POST" action="{% url 'send_test_alert' %}">
+      {% csrf_token %}
+      <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">🧪 Send Test Email</button>
+    </form>
+  </section>
+
+  <!-- Security Tip -->
+  <section class="glass p-6 rounded-xl shadow">
+    <h3 class="text-lg font-semibold mb-2">🛠️ Security Tip</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-300 italic">
+      "{{ security_tip }}"
+    </p>
+  </section>
+
+  <!-- About -->
+  <section class="glass p-6 rounded-xl shadow">
+    <h3 class="text-lg font-semibold mb-2">ℹ️ About</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+      This SYN Flood Detection Dashboard uses AI to identify and mitigate SYN flood attacks in real time.
+      Built with Django, PyTorch, TailwindCSS, and WebSocket technology. Developed by <strong>You</strong>.
+    </p>
+    <p class="text-sm mt-2">
+      Version: 1.0 • License: MIT • Powered by ❤️
+    </p>
+  </section>
 </div>
 {% endblock %}

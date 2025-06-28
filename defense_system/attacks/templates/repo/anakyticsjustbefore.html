@@ -1,0 +1,66 @@
+{% extends 'attacks/base.html' %}
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold mb-6 text-center">📊 Attack Analytics</h2>
+
+<!-- Full-width Responsive Container -->
+<div class="w-full max-w-6xl mx-auto px-4">
+  <div class="glass p-6 rounded-xl shadow-md w-full">
+    <h3 class="text-lg font-semibold mb-4 text-center">Trend Timeline</h3>
+    <div class="relative h-[300px]">
+      <canvas id="trendChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function fetchTrendData() {
+  try {
+    const res = await fetch('/api/trend/');
+    const data = await res.json();
+
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [
+          {
+            label: "Malicious",
+            data: data.malicious,
+            borderColor: "rgb(239, 68, 68)",
+            backgroundColor: "rgba(239, 68, 68, 0.2)",
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: "Benign",
+            data: data.benign,
+            borderColor: "rgb(34, 197, 94)",
+            backgroundColor: "rgba(34, 197, 94, 0.2)",
+            tension: 0.3,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // Allow it to fill div's dimensions
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Error loading trend data:', err);
+  }
+}
+
+fetchTrendData();
+</script>
+{% endblock %}

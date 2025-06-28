@@ -4,16 +4,7 @@
 {% block content %}
 <header class="flex justify-between items-center mb-6">
   <h2 class="text-2xl font-bold">📊 Attack Analytics</h2>
-  <div class="flex items-center gap-3">
-    <button id="refreshBtn" onclick="refreshAnalytics()" class="relative flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-5 py-2 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 shadow-md">
-      <svg id="spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-      </svg>
-      <span id="refreshText">🔄 Refresh</span>
-    </button>
-    <span id="lastRefreshed" class="text-sm text-gray-400">Last updated: just now</span>
-  </div>
+  <button onclick="fetchAnalyticsData()" class="bg-blue-500 text-white px-4 py-2 rounded-xl hover:bg-blue-600">🔄 Refresh Data</button>
 </header>
 
 <!-- Summary Cards -->
@@ -21,53 +12,38 @@
   <div class="glass p-4 rounded-xl shadow-md text-center">
     <h4 class="text-lg font-semibold mb-2">Total Attacks</h4>
     <p id="totalAttacks" class="text-3xl font-bold text-red-500">0</p>
-    <p class="text-sm text-gray-400 mt-2">Total flagged SYN requests.</p>
   </div>
   <div class="glass p-4 rounded-xl shadow-md text-center">
     <h4 class="text-lg font-semibold mb-2">Malicious %</h4>
     <p id="maliciousPct" class="text-3xl font-bold text-orange-500">0%</p>
-    <p class="text-sm text-gray-400 mt-2">Detected as malicious.</p>
   </div>
   <div class="glass p-4 rounded-xl shadow-md text-center">
     <h4 class="text-lg font-semibold mb-2">Benign %</h4>
     <p id="benignPct" class="text-3xl font-bold text-green-500">0%</p>
-    <p class="text-sm text-gray-400 mt-2">Detected as benign.</p>
   </div>
 </div>
 
 <!-- Trend Timeline -->
 <div class="glass p-6 rounded-xl shadow-md w-full mb-8">
-  <h3 class="text-lg font-semibold mb-2 text-center">📈 Trend Timeline</h3>
-  <p class="text-sm text-gray-400 text-center mb-4">Attack activity over time.</p>
+  <h3 class="text-lg font-semibold mb-4 text-center">Trend Timeline</h3>
   <div class="relative h-[300px]">
     <canvas id="trendChart" class="w-full h-full"></canvas>
   </div>
 </div>
 
-<!-- Risk Level Breakdown -->
+<!-- Risk Level Pie Chart -->
 <div class="glass p-6 rounded-xl shadow-md mb-8">
-  <h3 class="text-lg font-semibold mb-2 text-center">⚠️ Risk Level Breakdown</h3>
-  <p class="text-sm text-gray-400 text-center mb-4">Severity levels by score.</p>
+  <h3 class="text-lg font-semibold mb-4 text-center">Risk Level Breakdown</h3>
   <div class="relative h-[300px]">
     <canvas id="riskPieChart"></canvas>
   </div>
 </div>
 
-<!-- Top 5 Attacker IPs -->
+<!-- Top Attacker IPs -->
 <div class="glass p-6 rounded-xl shadow-md mb-8">
-  <h3 class="text-lg font-semibold mb-2 text-center">📍 Top Attacker IPs</h3>
-  <p class="text-sm text-gray-400 text-center mb-4">Top IPs by attack volume.</p>
+  <h3 class="text-lg font-semibold mb-4 text-center">Top 5 Attacker IPs</h3>
   <div class="relative h-[300px]">
     <canvas id="ipBarChart"></canvas>
-  </div>
-</div>
-
-<!-- Hourly Distribution -->
-<div class="glass p-6 rounded-xl shadow-md mb-8">
-  <h3 class="text-lg font-semibold mb-2 text-center">⏰ Hourly Distribution</h3>
-  <p class="text-sm text-gray-400 text-center mb-4">Attacks by hour.</p>
-  <div class="relative h-[300px]">
-    <canvas id="hourlyChart"></canvas>
   </div>
 </div>
 {% endblock %}
@@ -75,6 +51,7 @@
 {% block extra_scripts %}
 <script>
 async function fetchAnalyticsData() {
+  // Trend timeline
   const trendRes = await fetch('/api/trend/');
   const trendData = await trendRes.json();
 
@@ -113,6 +90,7 @@ async function fetchAnalyticsData() {
     }
   });
 
+  // Analytics summary
   const summaryRes = await fetch('/api/analytics_summary/');
   const summaryData = await summaryRes.json();
 
@@ -164,45 +142,8 @@ async function fetchAnalyticsData() {
       }
     }
   });
-
-  new Chart(document.getElementById('hourlyChart'), {
-    type: 'bar',
-    data: {
-      labels: summaryData.hourly.labels,
-      datasets: [{
-        label: 'Attacks per Hour',
-        data: summaryData.hourly.values,
-        backgroundColor: "rgba(249, 115, 22, 0.7)"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
 }
 
-async function refreshAnalytics() {
-  const refreshBtn = document.getElementById('refreshBtn');
-  const refreshText = document.getElementById('refreshText');
-  const spinner = document.getElementById('spinner');
-  const lastRefreshed = document.getElementById('lastRefreshed');
-
-  spinner.classList.remove('hidden');
-  refreshText.textContent = 'Refreshing...';
-
-  await fetchAnalyticsData();
-
-  spinner.classList.add('hidden');
-  refreshText.textContent = '🔄 Refresh';
-
-  const now = new Date();
-  lastRefreshed.textContent = `Last updated: ${now.toLocaleTimeString()}`;
-}
-
-refreshAnalytics();
+fetchAnalyticsData();
 </script>
 {% endblock %}

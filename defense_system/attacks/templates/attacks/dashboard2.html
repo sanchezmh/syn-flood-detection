@@ -1,42 +1,41 @@
 {% extends 'attacks/base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard{%endblock %}
 
 {% block content %}
-<header class="flex justify-between items-center mb-8">
-  <h2 class="text-3xl font-bold">SYN Flood Dashboard</h2>
-  <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Fetching data...</span>
-</header>
 
-<!-- KPI Cards -->
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-  <div class="glass p-6 rounded-2xl shadow" id="card-total">
+<!-- Top Row: KPI Cards with gradient + fade-in -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+  <div class="glass p-6 rounded-2xl shadow bg-gradient-to-br from-indigo-500/10 to-indigo-200/10" id="card-total">
     <div class="flex justify-between items-center">
       <div>
         <p class="text-gray-500 text-sm">Total Attacks</p>
         <p class="text-3xl font-bold" id="kpi-total">0</p>
+       
       </div>
-      <i data-lucide="activity" class="w-6 h-6 text-indigo-500"></i>
+      <i data-lucide="activity" class="w-6 h-6 text-indigo-500 animate-pulse"></i>
     </div>
   </div>
-  <div class="glass p-6 rounded-2xl shadow" id="card-malicious">
+  <div class="glass p-6 rounded-2xl shadow bg-gradient-to-br from-red-500/10 to-red-200/10" id="card-malicious">
     <div class="flex justify-between items-center">
       <div>
         <p class="text-gray-500 text-sm">Malicious IPs</p>
         <p class="text-3xl font-bold text-red-500" id="kpi-malicious">0</p>
+       
       </div>
       <i data-lucide="flame" class="w-6 h-6 text-red-500"></i>
     </div>
   </div>
-  <div class="glass p-6 rounded-2xl shadow" id="card-benign">
+  <div class="glass p-6 rounded-2xl shadow bg-gradient-to-br from-green-500/10 to-green-200/10" id="card-benign">
     <div class="flex justify-between items-center">
       <div>
         <p class="text-gray-500 text-sm">Benign Events</p>
         <p class="text-3xl font-bold text-green-500" id="kpi-benign">0</p>
+        
       </div>
       <i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i>
     </div>
   </div>
-  <div class="glass p-6 rounded-2xl shadow" id="card-updated">
+  <div class="glass p-6 rounded-2xl shadow bg-gradient-to-br from-gray-500/10 to-gray-200/10" id="card-updated">
     <div class="flex justify-between items-center">
       <div>
         <p class="text-gray-500 text-sm">Last Updated</p>
@@ -47,50 +46,80 @@
   </div>
 </section>
 
-<!-- Filter -->
-<div class="flex justify-between items-center mb-6">
-  <h3 class="text-xl font-semibold">Live Attacks</h3>
-  <select id="statusFilter" onchange="fetchAttacks()" class="text-sm rounded px-3 py-2 border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
-    <option value="all">All</option>
-    <option value="benign">Benign</option>
-    <option value="malicious">Malicious</option>
-  </select>
+<!-- Filter + Refresh -->
+<div class="flex justify-between items-center mb-6 animate-fade-in">
+  <div class="text-sm text-gray-500 dark:text-gray-300" id="refreshStatus">Fetching data...</div>
+  <div class="flex items-center space-x-4">
+    <label for="statusFilter" class="text-sm font-medium text-gray-600 dark:text-gray-300">Filter:</label>
+    <select id="statusFilter" onchange="fetchAttacks()" class="text-sm rounded px-3 py-2 border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+      <option value="all">All</option>
+      <option value="benign">Benign</option>
+      <option value="malicious">Malicious</option>
+    </select>
+  </div>
 </div>
 
-<!-- Attack Table -->
-<div class="glass rounded-xl shadow-md overflow-x-auto mb-10">
-  <table class="min-w-full text-sm">
-    <thead class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 uppercase text-xs font-semibold">
-      <tr>
-        <th class="py-4 px-6 text-left">Timestamp</th>
-        <th class="py-4 px-6 text-left">Source IP</th>
-        <th class="py-4 px-6 text-left">Status</th>
-        <th class="py-4 px-6 text-left">Risk</th>
-      </tr>
-    </thead>
-    <tbody id="attack-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
-      <!-- Injected rows -->
-    </tbody>
-  </table>
+<!-- Main Grid: Attack Logs + Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 animate-fade-in">
+
+  <!-- Attack Logs Table -->
+  <div class="lg:col-span-2">
+    <h3 class="text-xl font-semibold mb-4">Attack Logs</h3>
+    <div class="glass rounded-xl shadow-md overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 uppercase text-xs font-semibold">
+          <tr>
+            <th class="py-4 px-6 text-left">Timestamp</th>
+            <th class="py-4 px-6 text-left">Source IP</th>
+            <th class="py-4 px-6 text-left">Status</th>
+            <th class="py-4 px-6 text-left">Risk</th>
+          </tr>
+        </thead>
+        <tbody id="attack-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+          <!-- Injected rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Real-Time Alerts -->
+  <div>
+    <h3 class="text-xl font-semibold mb-4">⚠️ Real-Time Alerts</h3>
+    <ul id="alert-list" class="space-y-3"></ul>
+  </div>
+
 </div>
 
 <!-- Traffic Chart -->
-<section class="mb-12">
+<section class="mb-12 animate-fade-in">
   <h3 class="text-xl font-semibold mb-4">📉 Traffic Timeline (Last 10 Minutes)</h3>
   <div class="glass p-4 rounded-xl shadow-md">
     <canvas id="trafficChart" height="120"></canvas>
   </div>
 </section>
 
-<!-- Alerts -->
-<section>
-  <h3 class="text-xl font-semibold mb-4">⚠️ Critical Alerts</h3>
-  <ul id="alert-list" class="space-y-3"></ul>
-</section>
+<!-- Sticky Ask Assistant (mobile only) -->
+<button onclick="startVoiceQuery()"
+  class="fixed bottom-6 right-6 z-50 bg-green-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-green-700 transition md:hidden">
+  🎙️ Ask Assistant
+</button>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+// Add fade-in animation (CSS)
+document.head.insertAdjacentHTML('beforeend', `
+<style>
+@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fade-in 0.8s ease-out; }
+.pulse-alert { animation: pulse 1s infinite; }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+</style>`);
+
 let trafficChart;
 let previousMaliciousCount = 0;
 
@@ -135,11 +164,9 @@ function updateTrafficChart(label, malicious, benign) {
       data: trafficData,
       options: {
         responsive: true,
+        animation: { duration: 600 },
         scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
+          y: { beginAtZero: true, ticks: { precision: 0 } }
         }
       }
     });
@@ -174,23 +201,13 @@ async function fetchAttacks() {
       const badge = status === 'malicious' ? 'bg-red-500' : 'bg-green-500';
       
       const localTime = new Date(attack.timestamp).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
+        year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
       });
 
       let riskLabel = 'Low';
       let riskColor = 'bg-green-500';
-      if (attack.score > 0.5) {
-        riskLabel = 'High';
-        riskColor = 'bg-green-500';
-      } else if (attack.score === 0.5) {
-        riskLabel = 'Medium';
-        riskColor = 'bg-yellow-500';
-      }
+      if (attack.score > 0.5) { riskLabel = 'High'; riskColor = 'bg-red-500'; }
+      else if (attack.score === 0.5) { riskLabel = 'Medium'; riskColor = 'bg-yellow-500'; }
 
       const row = document.createElement('tr');
       row.className = 'hover:bg-gray-50 dark:hover:bg-gray-800 transition';
@@ -230,6 +247,7 @@ function updateAlerts(alerts) {
     const li = document.createElement('li');
     li.className = 'p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow';
     li.innerHTML = `<strong>${alert.source_ip}</strong> flagged as <span class="text-red-700 font-semibold">${alert.status}</span> at ${new Date(alert.timestamp).toLocaleString()}`;
+    li.classList.add('pulse-alert');
     container.appendChild(li);
   });
 }

@@ -10,11 +10,11 @@ target_ip = "10.8.0.26"  # <-- CHANGE this to your actual IP
 target_port = 80
 syn_duration = 300  # seconds per SYN flood round
 rounds = 10        # total number of rounds
-output_file = "dummy/zeek_combined_training.csv"
+output_file = "datasets_and_models/zeek_combined_training.csv"
 # ============================
 
-pcap_dir = "dummy/pcaps"
-zeek_out_dir = "dummy/zeek_out"
+pcap_dir = "datasets_and_models/pcaps"
+zeek_out_dir = "datasets_and_models/zeek_out"
 os.makedirs(pcap_dir, exist_ok=True)
 os.makedirs(zeek_out_dir, exist_ok=True)
 
@@ -49,7 +49,7 @@ for i in range(rounds):
         send(pkt, verbose=0, inter=0.0005)
     tcpdump_proc.send_signal(signal.SIGINT)
     tcpdump_proc.wait()
-    print(f"✅ Captured SYN traffic (Round {i+1})")
+    print(f" Captured SYN traffic (Round {i+1})")
 
     # 2. Zeek parse
     syn_log = run_zeek(syn_pcap, f"syn_batch_{i}")
@@ -64,6 +64,6 @@ for i in range(rounds):
         df_final = df_syn
 
     df_final.to_csv(output_file, index=False)
-    print(f"📁 Appended to {output_file} (total rows: {len(df_final)})")
+    print(f" Appended to {output_file} (total rows: {len(df_final)})")
 
-print("\n🎉 All SYN flood rounds complete! Dataset updated.")
+print("\n All SYN flood rounds complete! Dataset updated.")

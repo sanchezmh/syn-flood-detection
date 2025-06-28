@@ -1,0 +1,25 @@
+{% extends 'attacks/base.html' %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<header class="flex justify-between items-center mb-6">
+  <h2 class="text-2xl font-bold">⚙️ Settings</h2>
+  <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Ready</span>
+</header>
+
+<div class="glass p-6 rounded-xl shadow space-y-6 max-w-xl">
+  <p class="text-gray-600 dark:text-gray-300">
+    This is a placeholder settings page. You can expand it with real options later.
+  </p>
+
+  <div>
+    <label class="block mb-2 font-medium">Email Notification Threshold</label>
+    <input type="number" class="w-48 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white" value="50" disabled>
+  </div>
+
+  <div>
+    <label class="block mb-2 font-medium">Auto Block Malicious IPs</label>
+    <input type="checkbox" checked disabled class="accent-red-500 w-5 h-5">
+  </div>
+</div>
+{% endblock %}

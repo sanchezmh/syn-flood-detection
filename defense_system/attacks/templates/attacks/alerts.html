@@ -4,20 +4,86 @@
 {% block content %}
 <header class="flex justify-between items-center mb-6">
   <h2 class="text-2xl font-bold">⚠️ Critical Alerts</h2>
-  <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Ready</span>
+  <span id="refreshStatus" class="text-sm text-gray-500 dark:text-gray-300">Loading...</span>
 </header>
 
-{% if alerts %}
-<ul class="space-y-4">
-  {% for alert in alerts %}
-  <li class="p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow">
-    <strong>{{ alert.source_ip }}</strong> flagged as 
-    <span class="text-red-700 dark:text-red-300 font-semibold">{{ alert.status }}</span>
-    at <em>{{ alert.timestamp }}</em>.
-  </li>
-  {% endfor %}
-</ul>
-{% else %}
-<p class="text-gray-500">No alerts to display.</p>
-{% endif %}
+<!-- Real-time Alerts Container -->
+<ul id="alert-list" class="space-y-4"></ul>
+
+<!-- Fallback for No-JS Browsers -->
+<noscript>
+  {% if alerts %}
+  <ul class="space-y-4">
+    {% for alert in alerts %}
+    <li class="p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow">
+      <strong>{{ alert.source_ip }}</strong> flagged as 
+      <span class="text-red-700 dark:text-red-300 font-semibold">{{ alert.status }}</span>
+      at <em>{{ alert.timestamp }}</em>.
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- Pagination Fallback -->
+  <div class="mt-6 flex justify-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
+    {% if alerts.has_previous %}
+      <a href="?page={{ alerts.previous_page_number }}" class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Previous</a>
+    {% endif %}
+    <span class="px-3 py-1">Page {{ alerts.number }} of {{ alerts.paginator.num_pages }}</span>
+    {% if alerts.has_next %}
+      <a href="?page={{ alerts.next_page_number }}" class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Next</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="text-gray-500">No critical alerts to display.</p>
+  {% endif %}
+</noscript>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadCriticalAlerts() {
+  const statusEl = document.getElementById('refreshStatus');
+  statusEl.textContent = 'Loading...';
+
+  try {
+    const res = await fetch('/api/attacks/');
+    const { attacks } = await res.json();
+
+    const critical = attacks.filter(a =>
+      a.status.toLowerCase() === 'malicious' && a.score > 0.5
+    ).slice(0, 10);
+
+    const container = document.getElementById('alert-list');
+    container.innerHTML = '';
+
+    if (critical.length === 0) {
+      container.innerHTML = '<p class="text-gray-500">No critical alerts to display.</p>';
+      statusEl.textContent = 'Updated – no critical alerts';
+      return;
+    }
+
+    critical.forEach(alert => {
+      const li = document.createElement('li');
+      li.className = 'p-4 rounded-xl bg-gradient-to-r from-red-100/70 to-red-200/50 dark:from-red-900/60 dark:to-red-800/50 border-l-4 border-red-500 shadow';
+      li.innerHTML = `
+        <strong>${alert.source_ip}</strong> flagged as 
+        <span class="text-red-700 dark:text-red-300 font-semibold">${alert.status}</span>
+        at <em>${new Date(alert.timestamp).toLocaleString()}</em>.`;
+      container.appendChild(li);
+    });
+
+    const now = new Date();
+    statusEl.textContent = `Updated at ${now.toLocaleTimeString()}`;
+  } catch (err) {
+    console.error('Error fetching alerts:', err);
+    document.getElementById('alert-list').innerHTML =
+      '<p class="text-red-500">Error loading alerts</p>';
+    statusEl.textContent = 'Error fetching alerts';
+  }
+}
+
+// Load alerts immediately and refresh every 30 seconds
+loadCriticalAlerts();
+setInterval(loadCriticalAlerts, 30000);
+</script>
 {% endblock %}

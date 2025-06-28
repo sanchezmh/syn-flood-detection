@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+# My models attack log and attack counter
 
 
 class AttackLog(models.Model):
@@ -12,7 +12,6 @@ class AttackLog(models.Model):
     def __str__(self):
         return f"{self.source_ip} ({self.score:.2f})"
     
-
 class AttackCounter(models.Model):
     id = models.SmallAutoField(primary_key=True)
     count = models.IntegerField(default=0)
