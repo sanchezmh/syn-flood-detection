@@ -15,7 +15,7 @@ from sklearn.metrics import (classification_report,
 import matplotlib.pyplot as plt
 
 # CONFIG
-DATA_PATH = "../datasets_and_models/Cleaned_and_Processed_Dataset.csv"
+DATA_PATH = "/datasets_and_models/Cleaned_and_Processed_Dataset.csv"
 MODEL_DIRECTORY = "../datasets_and_models/trainer"
 RESULTS_DIR = "../Results"
 os.makedirs(MODEL_DIRECTORY, exist_ok=True)
