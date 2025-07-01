@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "datasets_and_models", "Cleaned_and_Processed_Dataset.csv")
 # CONFIG
-DATA_PATH = "/datasets_and_models/Cleaned_and_Processed_Dataset.csv"
+DATA_PATH = "../datasets_and_models/Cleaned_and_Processed_Dataset.csv"
 MODEL_DIRECTORY = "../datasets_and_models/trainer"
 RESULTS_DIR = "../Results"
 os.makedirs(MODEL_DIRECTORY, exist_ok=True)
