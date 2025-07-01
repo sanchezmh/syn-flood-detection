@@ -25,7 +25,7 @@ from django.conf import settings
 # ========== EMAIL NOTIFICATION ==========
 def send_attack_email(total_count):
     send_mail(
-        subject='SYN Flood Alert:  New Attacks Blocked',
+        subject='SYN Flood Alert: New Attacks Blocked',
         message=f'A total of {total_count} SYN flood attacks have been blocked so far.',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=['mhemberesanchez@gmail.com'],
@@ -35,11 +35,10 @@ def send_attack_email(total_count):
 # ========== LOAD MODELS ==========
 print("🔄 Loading models...")
 rf_model = joblib.load(os.path.join(model_dir, "rf_model.joblib"))
-print("🔍 RF model expects features:", list(rf_model.feature_names_in_))  # Optional check
 if_model = joblib.load(os.path.join(model_dir, "if_model.joblib"))
 scaler = joblib.load(os.path.join(model_dir, "anfis_input_scaler.joblib"))
 
-# === Define ANFIS classes (must match training definitions) ===
+# === Define ANFIS classes ===
 class GaussianMF(nn.Module):
     def __init__(self, num_inputs, num_mfs):
         super().__init__()
@@ -61,8 +60,7 @@ class ANFIS(nn.Module):
 
     def forward(self, x):
         batch_size = x.size(0)
-        mf_out = self.mf_layer(x)
-        mf_out = mf_out.permute(0, 2, 1)
+        mf_out = self.mf_layer(x).permute(0, 2, 1)
         rules = torch.cartesian_prod(*[torch.arange(self.num_mfs) for _ in range(self.num_inputs)])
         rule_strengths = torch.ones((batch_size, self.num_rules), device=x.device)
         for i in range(self.num_inputs):
@@ -70,10 +68,9 @@ class ANFIS(nn.Module):
         norm_strengths = rule_strengths / rule_strengths.sum(dim=1, keepdim=True)
         x_with_bias = torch.cat([x, torch.ones(batch_size, 1)], dim=1)
         rule_outputs = torch.matmul(x_with_bias, self.rule_weights.t())
-        output = (norm_strengths * rule_outputs).sum(dim=1, keepdim=True)
-        return torch.sigmoid(output)
+        return torch.sigmoid((norm_strengths * rule_outputs).sum(dim=1, keepdim=True))
 
-# === Load ANFIS ===
+# === Load Trained ANFIS Model ===
 anfis = joblib.load(os.path.join(model_dir, "anfis_model.joblib"))
 anfis.eval()
 print("✅ Models loaded!")
@@ -97,6 +94,7 @@ def parse_conn_log(path):
 def extract_features(row):
     try:
         features = [
+            float(row.get('duration', 0)),
             float(row.get('orig_bytes', 0)),
             float(row.get('resp_bytes', 0)),
             float(row.get('orig_pkts', 0)),
