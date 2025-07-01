@@ -8,7 +8,7 @@ import torch.nn as nn
 
 # ========== CONFIG ==========
 zeek_log_path = "conn.log"
-model_dir = "datasets_and_models/trained_models"
+model_dir = "datasets_and_models/trainer"
 threshold = 0.1
 blocked_ips = set()
 
