@@ -66,6 +66,7 @@ scaler = MinMaxScaler()
 anfis_input_scaled_all = scaler.fit_transform(anfis_input_all)
 joblib.dump(scaler, os.path.join(MODEL_DIRECTORY, "anfis_input_scaler.joblib"))
 
+
 # === Evaluate Isolation Forest (unsupervised)
 threshold = np.percentile(iso_scores_all, 90)
 iso_preds = (iso_scores_all > threshold).astype(int)
@@ -141,8 +142,9 @@ for epoch in range(100):
         print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
 
 # === Save Trained ANFIS Model
-torch.save(anfis_model.state_dict(), os.path.join(MODEL_DIRECTORY, "anfis_model.pt"))  # Optional
-joblib.dump(anfis_model, os.path.join(MODEL_DIRECTORY, "anfis_input_scaler.joblib"))         # ✅ For EC2/Joblib loading
+torch.save(anfis_model.state_dict(), os.path.join(MODEL_DIRECTORY, "anfis_model.pt"))  # Optional 
+joblib.dump(anfis_model, os.path.join(MODEL_DIRECTORY, "anfis_model.joblib"))  # ✅ correct model path
+# ✅ For EC2/Joblib loading
 
 # === Evaluate ANFIS Model
 with torch.no_grad():
