@@ -142,7 +142,7 @@ for epoch in range(100):
 
 # === Save Trained ANFIS Model
 torch.save(anfis_model.state_dict(), os.path.join(MODEL_DIRECTORY, "anfis_model.pt"))  # Optional
-joblib.dump(anfis_model, os.path.join(MODEL_DIRECTORY, "anfis_model.joblib"))         # ✅ For EC2/Joblib loading
+joblib.dump(anfis_model, os.path.join(MODEL_DIRECTORY, "anfis_input_scaler.joblib"))         # ✅ For EC2/Joblib loading
 
 # === Evaluate ANFIS Model
 with torch.no_grad():
