@@ -14,6 +14,8 @@ from sklearn.metrics import (classification_report,
                              roc_curve)
 import matplotlib.pyplot as plt
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(BASE_DIR, "datasets_and_models", "Cleaned_and_Processed_Dataset.csv")
 # CONFIG
 DATA_PATH = "/datasets_and_models/Cleaned_and_Processed_Dataset.csv"
 MODEL_DIRECTORY = "../datasets_and_models/trainer"
