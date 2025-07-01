@@ -97,20 +97,16 @@ def parse_conn_log(path):
 # ========== FEATURE EXTRACTION ==========
 def extract_features(row):
     try:
-        proto_map = {'tcp': 6, 'udp': 17, 'icmp': 1, '-': 0}
         features = [
-            float(row.get('ts', 0)),
-            float(row.get('id.orig_p', 0)),
-            float(row.get('id.resp_p', 0)),
-            float(row.get('duration', 0)),
             float(row.get('orig_bytes', 0)),
             float(row.get('resp_bytes', 0)),
-            float(row.get('missed_bytes', 0)),
             float(row.get('orig_pkts', 0)),
             float(row.get('orig_ip_bytes', 0)),
             float(row.get('resp_pkts', 0)),
             float(row.get('resp_ip_bytes', 0)),
-            proto_map.get(row.get('proto', '-'), 0)
+            float(row.get('pkt_ratio', 0)),
+            float(row.get('byte_ratio', 0)),
+            float(row.get('ip_byte_ratio', 0))
         ]
         return features
     except Exception as e:
@@ -151,7 +147,12 @@ while True:
             if features is None:
                 continue
 
-            X_input = pd.DataFrame([features], columns=rf_model.feature_names_in_)
+            try:
+                X_input = pd.DataFrame([features], columns=rf_model.feature_names_in_)
+            except Exception as e:
+                print(f"⚠ Column mismatch: {e}")
+                continue
+
             rf_score = rf_model.predict_proba(X_input)[:, 1][0]
             if_score = -if_model.decision_function(X_input)[0]
 
